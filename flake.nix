@@ -19,6 +19,17 @@
           pkgs.ruby
         ];
       };
+      packages.default = pkgs.stdenv.mkDerivation {
+        pname = "other-transcode";
+        version = "0.12.0-unstable-2024-07-14";
+        src = ./other-transcode.rb;
+        dontUnpack = true;
+        buildInputs = [pkgs.ruby pkgs.ffmpeg-full pkgs.mkvtoolnix-cli];
+        installPhase = ''
+          mkdir -p $out/bin
+          cp $src $out/bin/other-transcode
+        '';
+      };
     }
   );
 }
