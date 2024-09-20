@@ -19,17 +19,27 @@
           pkgs.ruby
         ];
       };
-      packages.default = pkgs.stdenv.mkDerivation {
-        pname = "other-transcode";
-        version = "0.12.0-unstable-2024-07-14";
-        src = ./other-transcode.rb;
-        dontUnpack = true;
-        buildInputs = [pkgs.ruby pkgs.ffmpeg-full pkgs.mkvtoolnix-cli];
-        installPhase = ''
-          mkdir -p $out/bin
-          cp $src $out/bin/other-transcode
-        '';
-      };
+      packages.default = 
+        let
+          pname = "other-transcode";
+          version = "0.12.0-unstable-2024-07-14";
+          my-buildInputs = [pkgs.ruby pkgs.ffmpeg-full pkgs.mkvtoolnix-cli];
+          script-unwrapped = pkgs.stdenv.mkDerivation {
+            pname = "${pname}-unwrapped";
+            inherit version;
+            src = ./other-transcode.rb;
+            dontUnpack = true;
+            installPhase = ''
+              mkdir -p $out/bin
+              cp $src $out/bin/${pname}
+            '';
+          };
+        in pkgs.symlinkJoin {
+          name = pname;
+          paths = [ script-unwrapped ] ++ my-buildInputs;
+          buildInputs = [ pkgs.makeWrapper ];
+          postBuild = "wrapProgram $out/bin/${pname} --prefix PATH : $out/bin";
+        };
     }
   );
 }
